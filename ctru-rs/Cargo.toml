@@ -1,5 +1,4 @@
 [package]
-authors = ["Ronald Kinard <furyhunter600@gmail.com>"]
 description = "A safe wrapper around smealum's ctrulib."
 license = "https://en.wikipedia.org/wiki/Zlib_License"
 name = "ctru-rs"
@@ -30,6 +29,7 @@ futures = "0.3"
 time = "0.3.7"
 tokio = { version = "1.16", features = ["rt", "time", "sync", "macros"] }
 cfg-if = "1.0.0"
+rapier2d = "0.11.1"
 
 [features]
 default = ["romfs"]

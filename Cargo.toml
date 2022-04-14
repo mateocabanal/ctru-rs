@@ -2,7 +2,7 @@
 members = ["ctru-rs", "ctru-sys"]
 
 [patch.'https://github.com/Meziu/libc']
-libc = "0.2.121"
+libc = "0.2.123"
 
 [patch.'https://github.com/Meziu/ctru-rs']
 # Make sure all dependencies use the local ctru-sys package
