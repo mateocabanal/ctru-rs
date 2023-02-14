@@ -8,7 +8,7 @@ use crate::gfx::Screen;
 static mut EMPTY_CONSOLE: PrintConsole = unsafe { const_zero::const_zero!(PrintConsole) };
 
 pub struct Console<'screen> {
-    context: Box<PrintConsole>,
+    pub context: Box<PrintConsole>,
     _screen: RefMut<'screen, dyn Screen>,
 }
 
