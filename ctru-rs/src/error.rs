@@ -21,7 +21,11 @@ impl Try for ResultCode {
     }
 
     fn branch(self) -> ControlFlow<Self::Residual, Self::Output> {
-        if self.0 < 0 {
+        // Wait timeouts aren't counted as "failures" in libctru, but an unfinished task means unsafety for us.
+        // Luckily all summary cases are for system failures (except RS_SUCCESS).
+        // I don't know if there are any cases in libctru where a Result holds a "failing" summary but a "success" code, so we'll just check for both.
+        if ctru_sys::R_FAILED(self.0) || ctru_sys::R_SUMMARY(self.0) != ctru_sys::RS_SUCCESS as i32
+        {
             ControlFlow::Break(self.into())
         } else {
             ControlFlow::Continue(())
@@ -51,6 +55,12 @@ pub enum Error {
     Libc(String),
     ServiceAlreadyActive,
     OutputAlreadyRedirected,
+    BufferTooShort {
+        /// Length of the buffer provided by the user.
+        provided: usize,
+        /// Size of the requested data (in bytes).
+        wanted: usize,
+    },
 }
 
 impl Error {
@@ -97,6 +107,11 @@ impl fmt::Debug for Error {
             Self::Libc(err) => f.debug_tuple("Libc").field(err).finish(),
             Self::ServiceAlreadyActive => f.debug_tuple("ServiceAlreadyActive").finish(),
             Self::OutputAlreadyRedirected => f.debug_tuple("OutputAlreadyRedirected").finish(),
+            Self::BufferTooShort { provided, wanted } => f
+                .debug_struct("BufferTooShort")
+                .field("provided", provided)
+                .field("wanted", wanted)
+                .finish(),
         }
     }
 }
@@ -113,10 +128,11 @@ impl fmt::Display for Error {
                 result_code_description_str(err)
             ),
             Self::Libc(err) => write!(f, "{err}"),
-            Self::ServiceAlreadyActive => write!(f, "Service already active"),
+            Self::ServiceAlreadyActive => write!(f, "service already active"),
             Self::OutputAlreadyRedirected => {
                 write!(f, "output streams are already redirected to 3dslink")
             }
+            Self::BufferTooShort{provided, wanted} => write!(f, "the provided buffer's length is too short (length = {provided}) to hold the wanted data (size = {wanted})")
         }
     }
 }
